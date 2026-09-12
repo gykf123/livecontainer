@@ -37,6 +37,10 @@ struct LCSettingsView: View {
     @State var errorInfo = ""
     @State var successShow = false
     @State var successInfo = ""
+    
+    @State private var newPasswordInput: String = ""
+    @State private var passwordChangeShow = false
+    @State private var passwordChangeInfo = ""
 
     @State private var certificateDataFound = false
     
@@ -216,6 +220,33 @@ struct LCSettingsView: View {
                 } footer: {
                     Text("lc.settings.dynamicColors.desc".loc)
                 }
+
+                Section {
+                    HStack {
+                        Text("计算器锁密码")
+                        Spacer()
+                        TextField("1234", text: $newPasswordInput)
+                            .multilineTextAlignment(.trailing)
+                            .keyboardType(.numberPad)
+                    }
+                    Button {
+                        if LCCalculatorLock.shared.changePassword(newPasswordInput) {
+                            newPasswordInput = ""
+                            passwordChangeInfo = "密码已更新，下次需用新密码解锁。"
+                        } else {
+                            passwordChangeInfo = "密码需为 1-12 位数字。"
+                        }
+                        passwordChangeShow = true
+                    } label: {
+                        Text("保存新密码")
+                    }
+                    .disabled(newPasswordInput.isEmpty)
+                } header: {
+                    Text("计算器伪装锁")
+                } footer: {
+                    Text("打开应用会先显示计算器，输入正确密码并按“=”即可进入本体。默认密码 1234，可在此更改。")
+                }
+
                 Section{
                     Toggle(isOn: $frameShortIcon) {
                         Text("lc.settings.FrameIcon".loc)
@@ -385,6 +416,11 @@ struct LCSettingsView: View {
             .alert("lc.common.success".loc, isPresented: $successShow){
             } message: {
                 Text(successInfo)
+            }
+            .alert("计算器伪装锁", isPresented: $passwordChangeShow){
+                Button("lc.common.ok".loc, action: {})
+            } message: {
+                Text(passwordChangeInfo)
             }
             .alert("lc.settings.importCertificate".loc, isPresented: $certificateImportAlert.show) {
                 Button {
