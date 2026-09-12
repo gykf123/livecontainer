@@ -1,0 +1,50 @@
+LiveContainer 计算器伪装版 —— 使用说明
+=====================================
+
+一、伪装效果
+- 应用名称：计算器
+- 应用图标：计算器样式（已替换 Resources/Assets.xcassets/AppIcon.appiconset 下的图标）
+- 打开应用后首先显示的是“计算器”界面（外观与功能均仿 iOS 自带计算器，可正常运算）。
+
+二、进入本体（解锁）
+- 默认密码：1234
+- 操作：在计算器上依次输入 1 2 3 4，然后按“=”键，即可进入 LiveContainer 本体。
+- 说明：只要按下“=”时显示的数字等于密码即可解锁（例如计算出的结果正好等于密码也可以）。
+
+三、修改密码（应用内）
+- 解锁进入本体后，底部进入“设置(Settings)”标签页，
+  找到“计算器伪装锁”一节，在输入框填入 1-12 位数字，点击“保存新密码”即可。
+- 密码保存在 UserDefaults（键：LCCalculatorLockPassword），默认值 1234。
+
+四、其它行为
+- 应用退到后台时会自动重新上锁，下次打开仍先显示计算器（更隐蔽）。
+
+五、改动文件清单
+- 新增：LiveContainerSwiftUI/Utilities/LCCalculatorLock.swift（密码与解锁状态管理）
+- 新增：LiveContainerSwiftUI/Views/LCCalculatorDisguiseView.swift（计算器伪装界面）
+- 修改：LiveContainerSwiftUI/App/LiveContainerSwiftUIApp.swift（新增 LCRootView，未解锁显示计算器）
+- 修改：LiveContainerSwiftUI/Views/Settings/LCSettingsView.swift（新增“计算器伪装锁”改密码入口）
+- 修改：LiveContainer/Info.plist（CFBundleDisplayName / CFBundleName 改为“计算器”）
+- 修改：Resources/Assets.xcassets/AppIcon.appiconset/*.png（替换为计算器图标）
+
+六、编译说明
+方式 A：GitHub Actions 云端编译（推荐，无需本地 Mac）
+  1. 在 GitHub 新建一个空仓库（不要勾选初始化 README/LICENSE）。
+  2. 把本 zip 内的全部文件上传到该仓库（任意你能用的方式，无需 git 命令行）。
+  3. 推送/提交后，仓库的 Actions 会自动触发（若未自动跑，在 Actions 页点 Run workflow）。
+  4. 约 10–15 分钟后，在当次运行的 Artifacts 中下载：
+       - LiveContainer.ipa            （用 AltStore 安装）
+       - LiveContainer+SideStore.ipa （用 SideStore 安装）
+  5. 用 AltStore / SideStore 安装即可（会用你的免费 Apple ID 在设备上签名）。
+  6. OpenSSL 与 litehook 两个子模块由 CI 在构建时自动按锁定提交下载
+     （见 .github/workflows/build.yml 的 “Fetch submodules” 步骤），你无需手动下载或上传它们。
+
+方式 B：本地 Xcode 编译
+  - 直接用 Xcode 打开 LiveContainer.xcodeproj 编译即可。
+  - LiveContainerSwiftUI 目录是 Xcode 的“文件系统同步组”，新增的 .swift 文件会被自动纳入编译，无需手动改工程文件。
+  - 本地编译需自行准备 OpenSSL（预编译 xcframework）与 litehook 源码，放到 OpenSSL/ 与 litehook/ 目录。
+
+七、已知注意点
+  - build.yml 中 xcode-version 写死为 '26.2'。若 runner 没有该版本，
+    setup-xcode 步骤会报错；届时把该值改为 macos-latest 上可用的版本（如 '16.2'）再推一次即可（一行改动）。
+  - 退出后台自动重新上锁；如需关闭该行为，改 LCCalculatorLock.swift 中的锁逻辑。
