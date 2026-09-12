@@ -102,7 +102,7 @@ struct LiveContainerSwiftUIApp : SwiftUI.App {
     
     var body: some Scene {
         WindowGroup(id: "Main") {
-            LCTabView()
+            LCRootView()
                 .handlesExternalEvents(preferring: ["*"], allowing: ["*"])
                 .environmentObject(DataManager.shared.model)
                 .environmentObject(LCAppSortManager.shared)
@@ -118,4 +118,26 @@ struct LiveContainerSwiftUIApp : SwiftUI.App {
         }
     }
     
+}
+
+/// 根视图：未解锁时显示计算器伪装界面，解锁后进入 LiveContainer 本体。
+/// 应用进入后台时自动重新上锁，保证下次打开仍先看到计算器。
+struct LCRootView: View {
+    @StateObject private var lock = LCCalculatorLock.shared
+    @Environment(\.scenePhase) private var scenePhase
+    
+    var body: some View {
+        Group {
+            if lock.isUnlocked {
+                LCTabView()
+            } else {
+                LCCalculatorDisguiseView()
+            }
+        }
+        .onChange(of: scenePhase) { newPhase in
+            if newPhase == .background {
+                lock.lock()
+            }
+        }
+    }
 }
