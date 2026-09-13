@@ -73,36 +73,45 @@ struct LCCalculatorDisguiseView: View {
     // MARK: - Body
     var body: some View {
         GeometryReader { geo in
-            let padding: CGFloat = 12
+            let padding: CGFloat = 14
             let gap: CGFloat = 12
-            let buttonSize = (geo.size.width - padding * 2 - gap * 3) / 4
-            let displayHeight = max(geo.size.height * 0.30, 120)
-            
+            let isLandscape = geo.size.width > geo.size.height
+            // iPad 上不要把计算器铺满整屏，限制最大内容宽度并居中
+            let maxContentWidth: CGFloat = isLandscape ? 560 : 480
+            let widthBased = (min(geo.size.width, maxContentWidth) - padding * 2 - gap * 3) / 4
+            // 关键修复：按钮尺寸同时受高度约束，避免 iPad 宽屏下整块超高被截断
+            let displayHeight = geo.size.height * 0.30
+            let heightBased = (geo.size.height - displayHeight - padding * 2 - gap * 4) / 5
+            let buttonSize = max(44, min(widthBased, heightBased))
+            let rowInnerWidth = buttonSize * 4 + gap * 3
+
             VStack(spacing: gap) {
-                Spacer(minLength: displayHeight * 0.25)
-                
+                Spacer(minLength: 0)
+
                 // 显示屏
                 HStack {
                     Spacer()
                     Text(display)
-                        .font(.system(size: min(buttonSize * 0.95, 92), weight: .thin))
+                        .font(.system(size: min(buttonSize * 0.95, 96), weight: .thin))
                         .foregroundColor(.white)
                         .padding(.horizontal, padding)
                         .lineLimit(1)
-                        .minimumScaleFactor(0.25)
+                        .minimumScaleFactor(0.2)
                 }
                 .frame(height: displayHeight)
-                
+
                 makeRow([.ac, .plusMinus, .percent, .divide], buttonSize: buttonSize, gap: gap)
                 makeRow([.digit("7"), .digit("8"), .digit("9"), .multiply], buttonSize: buttonSize, gap: gap)
                 makeRow([.digit("4"), .digit("5"), .digit("6"), .subtract], buttonSize: buttonSize, gap: gap)
                 makeRow([.digit("1"), .digit("2"), .digit("3"), .add], buttonSize: buttonSize, gap: gap)
                 makeRow([.digit("0"), .dot, .equals], buttonSize: buttonSize, gap: gap)
-                
+
                 Spacer(minLength: 0)
             }
             .padding(.horizontal, padding)
-            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottom)
+            .padding(.vertical, padding)
+            .frame(width: rowInnerWidth + padding * 2)
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
             .background(Color.black.ignoresSafeArea())
         }
     }
