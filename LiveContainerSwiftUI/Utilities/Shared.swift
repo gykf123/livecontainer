@@ -94,11 +94,11 @@ class SharedModel: ObservableObject {
     public static let keychainAccessGroupCount = 128
     
     func updateMultiLCStatus() {
-        if LCUtils.appUrlScheme()?.lowercased() != "livecontainer" {
-            multiLCStatus = 2
-        } else {
-            multiLCStatus = 0
-        }
+        // 单容器使用场景：自签/重签工具可能改写 Info.plist 里的 URL Scheme
+        // （例如改成 livecontainer2），导致本应作为主容器的实例被误判为副容器
+        // （multiLCStatus = 2），App 列表被禁用并提示"请在主 LiveContainer 中管理"。
+        // 这里固定按主容器运行，使签名环节对 scheme 的改写不再影响可用性。
+        multiLCStatus = 0
     }
     
     init() {
